@@ -16,6 +16,10 @@ function GenerateQuads(atlas, tilewidth, tileheight)
 	return spritesheet
 end
 
+function GenerateQuadsBricks(atlas)
+	return table.slice(GenerateQuads(atlas, 32, 16), 1, 21)
+end
+
 function table.slice(tbl,first,last,step)
 	local sliced = {}
 	for i = first or 1, last or #tbl, step or 1 do
@@ -76,3 +80,4 @@ function GenerateQuadsBalls(atlas)
 
 	return quads 
 end
+
