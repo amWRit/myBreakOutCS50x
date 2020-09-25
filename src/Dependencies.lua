@@ -3,6 +3,10 @@ Class = require 'lib/class'
 
 require 'src/constants'
 require 'src/StateMachine'
+require 'src/Paddle'
+
+require 'src/Util'
 
 require 'src/states/BaseState'
 require 'src/states/StartState'
+require 'src/states/PlayState'
