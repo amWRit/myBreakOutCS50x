@@ -1,16 +1,15 @@
 PlayState = Class{__includes = BaseState}
 
-function PlayState:init()
-	self.paddle = Paddle()	
-	self.paused = false
+function PlayState:enter(params)
+    self.paddle = params.paddle
+    self.bricks = params.bricks
+    self.health = params.health
+    self.score = params.score
+    self.ball = params.ball
 
-	self.ball = Ball(math.random(7))
-	self.ball.dx = math.random(-200, 200)
-	self.ball.dy = math.random(-50, -60)
-	self.ball.x = VIRTUAL_WIDTH/2 - 4
-	self.ball.y = VIRTUAL_HEIGHT/2 - 42
-
-	self.bricks = LevelMaker.createMap()
+    -- give ball random starting velocity
+    self.ball.dx = math.random(-200, 200)
+    self.ball.dy = math.random(-50, -60)
 end
 
 function PlayState:update(dt)
@@ -70,6 +69,24 @@ function PlayState:update(dt)
 		end
 	end
 
+	if self.ball.y >= VIRTUAL_HEIGHT then 
+		self.health = self.health - 1
+		gSounds['hurt']:play()
+
+		if self.health == 0 then 
+			gStateMachine:change('game-over', {
+				score = self.score
+			})
+		else
+            gStateMachine:change('serve', {
+            	paddle = self.paddle,
+            	bricks = self.bricks,
+            	health = self.health,
+            	score = self.score
+            })			
+		end 
+	end
+
 	if love.keyboard.wasPressed('escape') then
 		love.event.quit()
 	end
@@ -82,6 +99,9 @@ function PlayState:render()
 	for k, brick in pairs(self.bricks) do 
 		brick:render()
 	end
+
+	renderScore(self.score)
+    renderHealth(self.health)
 
 	if self.paused then
 		love.graphics.setFont(gFonts['large'])
