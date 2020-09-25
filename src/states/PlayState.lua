@@ -17,26 +17,56 @@ function PlayState:update(dt)
 	if self.paused then
 		if love.keyboard.wasPressed('space') then
 			self.paused = false
-			gSound['pause']:play()
+			gSounds['pause']:play()
 		else
 			return
 		end
 	elseif love.keyboard.wasPressed('space') then
 		self.paused = true
-		gSound['pause']:play()
+		gSounds['pause']:play()
 	end
 
 	self.paddle:update(dt)
 	self.ball:update(dt)
 
 	if self.ball:collides(self.paddle) then
+		self.ball.dy = self.paddle.y - 8
 		self.ball.dy = -self.ball.dy
+
+		-- tweak angle of bounce based on where it hits the paddle
+        -- if we hit the paddle on its left side while moving left...
+        if self.ball.x < self.paddle.x + (self.paddle.width / 2) and self.paddle.dx < 0 then
+            self.ball.dx = -50 + -(8 * (self.paddle.x + self.paddle.width / 2 - self.ball.x))
+        
+            -- else if we hit the paddle on its right side while moving right...
+        elseif self.ball.x > self.paddle.x + (self.paddle.width / 2) and self.paddle.dx > 0 then
+            self.ball.dx = 50 + (8 * math.abs(self.paddle.x + self.paddle.width / 2 - self.ball.x))
+        end
+
 		gSounds['paddle-hit']:play()
 	end
 
 	for k, brick in pairs(self.bricks) do
 		if brick.inPlay and self.ball:collides(brick) then
 			brick:hit()
+
+		    if self.ball.x + 2 < brick.x and self.ball.dx > 0 then
+		        self.ball.dx = -self.ball.dx
+		        self.ball.x = brick.x - self.ball.width
+		    elseif self.ball.x + 6 > brick.x + brick.width and self.ball.dx < 0 then
+		        self.ball.dx = -self.ball.dx
+		        self.ball.x = brick.x + 32
+		    elseif self.ball.y < brick.y then
+		    	self.ball.dy = - self.ball.dy
+		    	self.ball.y = brick.y - 8
+		    else
+		    	self.ball.dy = - self.ball.dy
+		    	self.ball.y = brick.y + 16		    	
+		    end
+		    -- speed up the velocity of ball
+		    self.ball.dy = self.ball.dy * 1.02
+		    --only allow colliding with one brick
+		    break
 		end
 	end
 
@@ -55,6 +85,6 @@ function PlayState:render()
 
 	if self.paused then
 		love.graphics.setFont(gFonts['large'])
-		love.graphics.printf("<< PAUSED >>", 0, VIRTUAL_HEIGHT/2-16, VIRTUAL_WIDTH/2-32)
+		love.graphics.printf("<< PAUSED >>", 0, VIRTUAL_HEIGHT/2-16, VIRTUAL_WIDTH, 'center')
 	end
 end
